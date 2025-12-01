@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - School LMS</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-brand">🎓 School LMS</div>
+        <ul class="navbar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="courses.html">My Courses</a></li>
+            <li><a href="assignments.html">Assignments</a></li>
+            <li><a href="grades.html">Grades</a></li>
+            <li><a href="attendance.html">Attendance</a></li>
+            <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="mb-2"> Teacher Dashboard</h1>
+        <p class="text-secondary mb-2" id="welcomeMessage">Welcome back!</p>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-4 mb-2">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="stat-value" id="totalCourses">0</div>
+                <div class="stat-label">My Courses</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-value" id="totalStudents">0</div>
+                <div class="stat-label">Total students</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-value" id="totalAssignments">0</div>
+                <div class="stat-label">Assignments</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stat-value" id="pendingGrades">0</div>
+                <div class="stat-label">Pending Grades</div>
+            </div>
+        </div>
+
+        <!-- My Courses -->
+        <div class="card mb-2">
+            <div class="card-header">
+                <h2 class="card-title">📚 My Courses</h2>
+            </div>
+            <div id="coursesList">
+                <p class="text-secondary">Loading courses...</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">⚡ Quick Actions</h2>
+            </div>
+            <div class="grid grid-3">
+                <button class="btn btn-primary" onclick="window.location.href='assignments.html'">
+                    Create Assignment
+                </button>
+                <button class="btn btn-success" onclick="window.location.href='attendance.html'">
+                    Mark Attendance
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='grades.html'">
+                    Grade Submissions
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        async function loadDashboard() {
+            try {
+                const data = await apiRequest('/api/dashboard');
+
+                if (data && data.user) {
+                    document.getElementById('welcomeMessage').textContent =
+                        `Welcome back, ${data.user.fullName}!`;
+
+                    document.getElementById('totalCourses').textContent =
+                        data.totalCourses || 0;
+
+                    if (data.myCourses && data.myCourses.length > 0) {
+                        const coursesList = document.getElementById('coursesList');
+                        coursesList.innerHTML = '';
+
+                        data.myCourses.forEach(course => {
+                            const courseCard = document.createElement('div');
+                            courseCard.className = 'card';
+                            courseCard.style.marginBottom = '1rem';
+                            courseCard.innerHTML = `
+                                <h3 style="margin-bottom: 0.5rem;">${course.courseName}</h3>
+                                <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                                    Code: ${course.courseCode} | Credits: ${course.credits || '-'}
+                                </p>
+                                <p style="color: var(--text-muted); font-size: 0.875rem;">
+                                    ${course.description || 'No description available'}
+                                </p>
+                            `;
+                            coursesList.appendChild(courseCard);
+                        });
+                    } else {
+                        document.getElementById('coursesList').innerHTML =
+                            '<p class="text-secondary">No courses assigned yet.</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Failed to load dashboard data', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+
+</html>

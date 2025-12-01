@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - School LMS</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-brand">🎓 School LMS - Admin</div>
+        <ul class="navbar-menu">
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="manage-users.html">Users</a></li>
+            <li><a href="manage-courses.html">Courses</a></li>
+            <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="mb-2">👨‍💼 Admin Dashboard</h1>
+        <p class="text-secondary mb-2" id="welcomeMessage">Welcome, Administrator!</p>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-4 mb-2">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="stat-value" id="totalStudents">0</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-value" id="totalTeachers">0</div>
+                <div class="stat-label">Total Teachers</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-value" id="totalCourses">0</div>
+                <div class="stat-label">Total Courses</div>
+            </div>
+
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="card mb-2">
+            <div class="card-header">
+                <h2 class="card-title">👥 Recent Users</h2>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Registered</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-secondary">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">⚡ Quick Actions</h2>
+            </div>
+            <div class="grid grid-3">
+                <button class="btn btn-primary" onclick="window.location.href='manage-users.html'">
+                    Manage Users
+                </button>
+                <button class="btn btn-success" onclick="window.location.href='manage-courses.html'">
+                    Manage Courses
+                </button>
+                <button class="btn btn-secondary" onclick="alert('Feature coming soon!')">
+                    System Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        async function loadDashboard() {
+            try {
+                const data = await apiRequest('/api/dashboard');
+
+                if (data) {
+                    document.getElementById('totalStudents').textContent = data.totalStudents || 0;
+                    document.getElementById('totalTeachers').textContent = data.totalTeachers || 0;
+                    document.getElementById('totalCourses').textContent = data.totalCourses || 0;
+                    document.getElementById('totalUsers').textContent =
+                        (data.totalStudents || 0) + (data.totalTeachers || 0) + 1; // +1 for admin
+
+                    if (data.recentUsers && data.recentUsers.length > 0) {
+                        const tbody = document.getElementById('usersTableBody');
+                        tbody.innerHTML = '';
+
+                        // Show last 10 users
+                        data.recentUsers.slice(-10).reverse().forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.fullName}</td>
+                                <td>${user.username}</td>
+                                <td>${user.email}</td>
+                                <td><span class="badge badge-${user.role === 'ADMIN' ? 'danger' : user.role === 'TEACHER' ? 'primary' : 'success'}">
+                                    ${user.role}
+                                </span></td>
+                                <td>${formatDate(user.createdAt)}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Failed to load dashboard data', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+
+</html>
